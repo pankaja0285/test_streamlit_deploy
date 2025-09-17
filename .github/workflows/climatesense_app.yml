@@ -57,4 +57,4 @@ jobs:
         # Example of a simple smoke test, you could use more comprehensive testing frameworks
         streamlit run app.py --server.port 8000 --server.address 0.0.0.0 &
         sleep 10 # Give the app time to start
-        curl http://localhost:8080
+        curl http://localhost:8000
