@@ -12,7 +12,10 @@ import re
 # *************  Import related to S3 **************************
 from s3_scripts import *
 # **************************************************************
-
+# ==========================
+# Streamlit UI
+# ==========================
+st.set_page_config(layout="wide")
 # ==========================
 # Load CSV from a specific directory
 # ==========================
@@ -34,7 +37,7 @@ from s3_scripts import *
 
 # *************************************** Changes - 2  ****************************************************
 @st.cache_data
-def get_available_ecmwf_csv_data():
+def get_available_ecmwf_csv_data_in_s3():
     unsorted_ecmwf_obj_dict = {}
     sorted_ecmwf_obj_dict = {}
     s3c, bucket_name = get_s3_client()
@@ -68,9 +71,28 @@ def load_ecmwf_csv_data_for_by_day(day_key=1, dict_s3_obj={}):
     # return the dataframe
     return df
 
-# Need to store the available objects in S3 - i.e. return of get_available_ecmwf_csv_data function
+@st.cache_data
+def load_combined_ecmwf_csv_available_data(dict_s3_obj={}):
+    df_combined = None
+    dfs = []
+    df = None
+    # get the data for that object from S3
+    s3c, bucket_name = get_s3_client()
+    for index, (key, value) in enumerate(dict_s3_obj.items()):
+        # print(f"value: {value}")
+        df = load_csv_from_s3_to_dataframe(s3_file_key=value, bucket=bucket_name, s3_client=s3c)
+        dfs.append(df)
+
+    # combine the dfs
+    if len(dfs) > 0:
+        df_combined = pd.concat(dfs, ignore_index=True)
+    return df_combined
+
+# Need to store the available objects in S3 - i.e. return of get_available_ecmwf_csv_data_in_s3 function
 #  - put in session 
-df_data = load_ecmwf_csv_data_for_by_day(day_key=2, dict_s3_obj=get_available_ecmwf_csv_data())
+# df_data = load_ecmwf_csv_data_for_by_day(day_key=2, dict_s3_obj=get_available_ecmwf_csv_data_in_s3())
+
+df_data = load_combined_ecmwf_csv_available_data(dict_s3_obj=get_available_ecmwf_csv_data_in_s3())
 # ************************************************************************************************************
 
 
@@ -158,10 +180,7 @@ if 'lon' not in st.session_state:
 if 'selected_param' not in st.session_state:
     st.session_state.selected_param = None
 
-# ==========================
-# Streamlit UI
-# ==========================
-st.set_page_config(layout="wide")
+
 
 st.markdown("""
 <div style="background-color:white; padding: 10px 5px 5px 5px; border-bottom: 2px solid #e6e6e6;">
