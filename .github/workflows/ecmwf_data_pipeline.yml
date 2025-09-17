@@ -1,0 +1,60 @@
+# .github/workflows/ecmwf_data_pipeline.yml
+
+name: ECMWF Data Pipeline to S3
+
+on:
+  schedule:
+    # # Format of the cron time settings are as follows
+    # # * * * * * 
+    # # Minute (0 - 59) 
+    # # Hour (0 - 23)
+    # # Day of the month (1 - 31)
+    # # Month (1 - 12)
+    # # Day of the week (0 - 6, where 0 and 7 are Sunday)
+    # # Runs at 00:05 UTC every day
+    # # - cron: '5 0 * * *'
+    # # Runs every hour at the 0th minute
+    # - cron: '3 * * * *'
+    # Runs every 3 days - 72 hours
+    - cron: '0 0 */5 * *'
+  workflow_dispatch:
+
+jobs:
+  run-pipeline:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        # Install cfgrib and its dependencies, including eccodes
+        # Ensure you have the necessary system libraries
+        sudo apt-get update
+        sudo apt-get install -y libeccodes-tools libeccodes-dev
+        # The recommended way to install cfgrib and dependencies is via conda
+        # but for a simple case, pip can work if system eccodes is present
+        python -m pip install --upgrade pip
+        # pip install ecmwf-opendata cfgrib xarray boto3
+        pip install -r requirements.txt
+
+    - name: Run Python script
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        S3_BUCKET_NAME: ${{ secrets.S3_BUCKET_NAME }}
+        S3_REGION: ${{ secrets.S3_REGION }}
+        TEMP_DIR: '/tmp'  # Explicitly setting TEMP_DIR
+      # run: python main_ecmwf_data_pipeline.py
+      # Instead use the shell script below, so we can pass params -->
+      run: |
+        # Example of a simple smoke test, you could use more comprehensive testing frameworks
+        streamlit run app.py --server.port 8000 --server.address 0.0.0.0 &
+        sleep 10 # Give the app time to start
+        curl http://localhost:8000
