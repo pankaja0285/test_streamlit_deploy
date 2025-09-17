@@ -55,6 +55,6 @@ jobs:
       # Instead use the shell script below, so we can pass params -->
       run: |
         # Example of a simple smoke test, you could use more comprehensive testing frameworks
-        streamlit run app.py --server.port 8000 --server.address 0.0.0.0 &
-        sleep 10 # Give the app time to start
+        streamlit run app.py --server.address 0.0.0.0 --server.port 8501 &
+        sleep 5 # Give the app time to start
         curl http://localhost:8000
