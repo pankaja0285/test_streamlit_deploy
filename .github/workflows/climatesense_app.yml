@@ -16,7 +16,7 @@ on:
     # # Runs every hour at the 0th minute
     # - cron: '3 * * * *'
     # Runs every 3 days - 72 hours
-    - cron: '0 0 */5 * *'
+    - cron: '0 0 */3 * *'
   workflow_dispatch:
 
 jobs:
@@ -54,7 +54,5 @@ jobs:
       # run: python main_ecmwf_data_pipeline.py
       # Instead use the shell script below, so we can pass params -->
       run: |
-        # Example of a simple smoke test, you could use more comprehensive testing frameworks
-        streamlit run app.py --server.port 8000 --server.address 0.0.0.0 &
-        sleep 10 # Give the app time to start
-        curl http://localhost:8000
+          chmod +x ./ecmwf_data_refresh_on_s3.sh
+          ./ecmwf_data_refresh_on_s3.sh
